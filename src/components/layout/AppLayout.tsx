@@ -11,7 +11,9 @@ import {
   GraduationCap,
   ChevronRight,
   Bell,
-  Search
+  Search,
+  Menu,
+  X
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { UserRole } from '../../types';
@@ -19,6 +21,7 @@ import { UserRole } from '../../types';
 export default function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
   const role = (localStorage.getItem('user_role') || 'staff') as UserRole;
 
   const handleLogout = () => {
@@ -41,17 +44,36 @@ export default function AppLayout() {
   const filteredMenu = menuItems.filter(item => item.roles.includes(role));
 
   return (
-    <div className="flex h-screen bg-[#F8FAFC]">
+    <div className="flex h-screen bg-[#F8FAFC] overflow-hidden relative">
+      {/* Mobile Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-blue-900/20 backdrop-blur-sm z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-72 bg-white border-r border-gray-100 flex flex-col pt-8 pb-4">
-        <div className="px-8 mb-12 flex items-center gap-3">
-          <div className="bg-blue-600 p-2 rounded-xl text-white">
-            <GraduationCap size={24} />
+      <aside className={cn(
+        "fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-gray-100 flex flex-col pt-8 pb-4 transition-transform duration-300 lg:relative lg:translate-x-0",
+        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        <div className="px-8 mb-12 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="bg-blue-600 p-2 rounded-xl text-white">
+              <GraduationCap size={24} />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-lg font-bold tracking-tight text-blue-950">SPU Portal</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-blue-400">SMK Prima Unggul</span>
+            </div>
           </div>
-          <div className="flex flex-col">
-            <span className="text-lg font-bold tracking-tight text-blue-950">SPU Portal</span>
-            <span className="text-[10px] font-black uppercase tracking-widest text-blue-400">SMK Prima Unggul</span>
-          </div>
+          <button 
+            onClick={() => setIsSidebarOpen(false)}
+            className="lg:hidden p-2 text-gray-400 hover:text-blue-600 transition-colors"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         <nav className="flex-1 px-4 space-y-2">
@@ -62,6 +84,7 @@ export default function AppLayout() {
               <div key={item.path} className="space-y-1">
                 <Link
                   to={item.path}
+                  onClick={() => !item.sub && setIsSidebarOpen(false)}
                   className={cn(
                     "flex items-center justify-between px-4 py-3 rounded-2xl transition-all group",
                     isActive 
@@ -84,6 +107,7 @@ export default function AppLayout() {
                       <Link
                         key={sub.path}
                         to={sub.path}
+                        onClick={() => setIsSidebarOpen(false)}
                         className={cn(
                           "block py-2 text-sm transition-colors",
                           location.pathname === sub.path 
@@ -122,28 +146,36 @@ export default function AppLayout() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="h-20 bg-white border-b border-gray-100 px-8 flex items-center justify-between z-10">
-          <div className="relative w-96">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input 
-              type="text" 
-              placeholder="Cari fitur, data, atau laporan..." 
-              className="w-full pl-12 pr-4 py-2.5 bg-gray-50 border-transparent rounded-xl text-sm focus:bg-white focus:ring-4 focus:ring-blue-50 transition-all outline-none"
-            />
+        <header className="h-20 bg-white border-b border-gray-100 px-4 md:px-8 flex items-center justify-between z-10">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setIsSidebarOpen(true)}
+              className="lg:hidden p-2 text-gray-500 hover:bg-gray-50 rounded-xl transition-all"
+            >
+              <Menu size={24} />
+            </button>
+            <div className="relative w-48 md:w-96 hidden sm:block">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <input 
+                type="text" 
+                placeholder="Cari fitur..." 
+                className="w-full pl-12 pr-4 py-2.5 bg-gray-50 border-transparent rounded-xl text-sm focus:bg-white focus:ring-4 focus:ring-blue-50 transition-all outline-none"
+              />
+            </div>
           </div>
 
-          <div className="flex items-center gap-6">
-            <button className="relative text-gray-400 hover:text-blue-600 transition-colors">
+          <div className="flex items-center gap-2 md:gap-6">
+            <button className="relative text-gray-400 hover:text-blue-600 transition-colors p-2">
               <Bell size={22} />
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 border-2 border-white rounded-full flex items-center justify-center text-[8px] text-white font-bold">2</span>
+              <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 border-2 border-white rounded-full flex items-center justify-center text-[8px] text-white font-bold">2</span>
             </button>
-            <div className="h-8 w-[1px] bg-gray-100" />
+            <div className="h-8 w-[1px] bg-gray-100 hidden md:block" />
             <button 
               onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl text-sm font-bold hover:bg-red-100 transition-all"
+              className="flex items-center gap-2 px-3 md:px-4 py-2 bg-red-50 text-red-600 rounded-xl text-xs md:text-sm font-bold hover:bg-red-100 transition-all"
             >
               <LogOut size={18} />
-              Logout
+              <span className="hidden xs:inline">Logout</span>
             </button>
           </div>
         </header>
